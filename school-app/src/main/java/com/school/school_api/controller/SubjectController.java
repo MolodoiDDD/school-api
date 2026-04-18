@@ -25,10 +25,6 @@ public class SubjectController {
         return service.findAll();
     }
 
-    @GetMapping
-    public Page<Subject> getAll(Pageable pageable) {
-        return service.findAll(pageable);
-    }
 
     @GetMapping("/{id}")
     public Subject getById(@PathVariable("id") Long id) {

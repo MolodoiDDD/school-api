@@ -26,9 +26,6 @@ public class SchoolClassService {
         return repository.findAll();
     }
 
-    public Page<SchoolClass> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
-    }
 
     public SchoolClass findById(Long id) {
         return repository.findById(id)

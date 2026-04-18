@@ -32,9 +32,7 @@ public class LessonService {
         return repository.findAll();
     }
 
-    public Page<Lesson> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
-    }
+
 
     public Lesson findById(Long id) {
         return repository.findById(id)

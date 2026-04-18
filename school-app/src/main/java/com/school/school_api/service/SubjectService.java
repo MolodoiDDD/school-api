@@ -25,9 +25,6 @@ public class SubjectService {
         return repository.findAll();
     }
 
-    public Page<Subject> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
-    }
 
     public Subject findById(Long id) {
         return repository.findById(id)

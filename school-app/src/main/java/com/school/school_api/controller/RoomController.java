@@ -25,10 +25,6 @@ public class RoomController {
         return service.findAll();
     }
 
-    @GetMapping
-    public Page<Room> getAll(Pageable pageable) {
-        return service.findAll(pageable);
-    }
 
     @GetMapping("/{id}")
     public Room getById(@PathVariable("id") Long id) {

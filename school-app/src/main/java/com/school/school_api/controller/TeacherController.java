@@ -25,10 +25,6 @@ public class TeacherController {
         return service.findAll();
     }
 
-    @GetMapping
-    public Page<Teacher> getAll(Pageable pageable) {
-        return service.findAll(pageable);
-    }
 
     @GetMapping("/{id}")
     public Teacher getById(@PathVariable("id") Long id) {

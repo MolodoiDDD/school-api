@@ -27,10 +27,6 @@ public class SchoolClassController {
         return service.findAll();
     }
 
-    @GetMapping
-    public Page<SchoolClass> getAll(Pageable pageable) {
-        return service.findAll(pageable);
-    }
 
     @GetMapping("/{id}")
     public SchoolClass getById(@PathVariable("id") Long id) {

@@ -13,8 +13,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,11 +29,6 @@ public class LessonController {
     @GetMapping
     public List<Lesson> getAll() {
         return service.findAll();
-    }
-
-    @GetMapping
-    public Page<Lesson> getAll(Pageable pageable) {
-        return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")
@@ -63,9 +56,10 @@ public class LessonController {
         return service.getSchedule();
     }
 
+
     @Operation(
             summary = "Получить расписание класса на дату",
-            tags = {"class"}
+            tags = {"classes"}
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -82,7 +76,7 @@ public class LessonController {
                     content = @Content
             )
     })
-    @GetMapping("/{id}/schedule")
+    @GetMapping("/classes/{id}/schedule")
     public List<ScheduleLessonDto> getScheduleByClassAndDate(
             @PathVariable("id") Long id,
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

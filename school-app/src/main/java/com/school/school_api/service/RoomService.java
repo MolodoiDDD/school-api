@@ -24,9 +24,7 @@ public class RoomService {
         return repository.findAll();
     }
 
-    public Page<Room> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
-    }
+
 
     public Room findById(Long id) {
         return repository.findById(id)
