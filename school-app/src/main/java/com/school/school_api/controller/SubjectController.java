@@ -2,26 +2,32 @@ package com.school.school_api.controller;
 
 import com.school.school_api.dto.SubjectCreateDto;
 import com.school.school_api.dto.SubjectUpdateDto;
+import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.Subject;
 import com.school.school_api.service.SubjectService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/subjects")
+@RequiredArgsConstructor
 public class SubjectController {
 
     private final SubjectService service;
 
-    public SubjectController(SubjectService service) {
-        this.service = service;
-    }
-
     @GetMapping
     public List<Subject> getAll() {
         return service.findAll();
+    }
+
+    @GetMapping
+    public Page<Subject> getAll(Pageable pageable) {
+        return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")

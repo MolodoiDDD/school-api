@@ -2,29 +2,37 @@ package com.school.school_api.service;
 
 import com.school.school_api.dto.SchoolClassCreateDto;
 import com.school.school_api.dto.SchoolClassUpdateDto;
+import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.SchoolClass;
+import com.school.school_api.exception.SchoolClassNotFoundException;
 import com.school.school_api.repository.SchoolClassRepository;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class SchoolClassService {
 
     private final SchoolClassRepository repository;
 
-    public SchoolClassService(SchoolClassRepository repository) {
-        this.repository = repository;
-    }
 
     public List<SchoolClass> findAll() {
         return repository.findAll();
     }
 
+    public Page<SchoolClass> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
+    }
+
     public SchoolClass findById(Long id) {
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Класс не найден:" + id));
+        return repository.findById(id)
+                .orElseThrow(() -> new SchoolClassNotFoundException(id));
     }
 
     public SchoolClass create(SchoolClassCreateDto dto) {
@@ -39,7 +47,8 @@ public class SchoolClassService {
     }
 
     public SchoolClass update(Long id, SchoolClassUpdateDto dto) {
-        SchoolClass schoolClass = repository.findById(id).orElseThrow(() -> new RuntimeException("Класс не найден"));
+        SchoolClass schoolClass = findById(id);
+
 
         schoolClass.setName(dto.getName());
         schoolClass.setModified(LocalDateTime.now());

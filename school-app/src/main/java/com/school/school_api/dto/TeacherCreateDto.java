@@ -19,4 +19,5 @@ public class TeacherCreateDto {
 
     @Size(max = 254, message = "Отчество учителя не должно быть длиннее 254 символов")
     private String middleName;
+
 }

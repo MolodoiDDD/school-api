@@ -2,26 +2,32 @@ package com.school.school_api.controller;
 
 import com.school.school_api.dto.RoomCreateDto;
 import com.school.school_api.dto.RoomUpdateDto;
+import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.Room;
 import com.school.school_api.service.RoomService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/rooms")
+@RequiredArgsConstructor
 public class RoomController {
 
     private final RoomService service;
 
-    public RoomController(RoomService service) {
-        this.service = service;
-    }
-
     @GetMapping
     public List<Room> getAll() {
         return service.findAll();
+    }
+
+    @GetMapping
+    public Page<Room> getAll(Pageable pageable) {
+        return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")

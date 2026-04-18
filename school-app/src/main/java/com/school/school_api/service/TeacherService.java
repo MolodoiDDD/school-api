@@ -2,28 +2,36 @@ package com.school.school_api.service;
 
 import com.school.school_api.dto.TeacherCreateDto;
 import com.school.school_api.dto.TeacherUpdateDto;
+import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.Teacher;
+import com.school.school_api.exception.TeacherNotFoundException;
 import com.school.school_api.repository.TeacherRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TeacherService {
 
     private final TeacherRepository repository;
 
-    public TeacherService(TeacherRepository repository) {
-        this.repository = repository;
-    }
 
     public List<Teacher> findAll() {
         return repository.findAll();
     }
 
+    public Page<Teacher> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
+    }
+
     public Teacher findById(Long id) {
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Учитель не найден"));
+        return repository.findById(id)
+                .orElseThrow(() -> new TeacherNotFoundException(id));
     }
 
     public Teacher create(TeacherCreateDto dto) {
