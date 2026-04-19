@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TeacherRepository extends JpaRepository<Teacher, Long> {
+    boolean existsByLastNameAndFirstNameAndMiddleName(String lastName, String firstName, String middleName);
+    boolean existsByLastNameAndFirstNameAndMiddleNameAndIdNot(String lastName, String firstName, String middleName, Long id);
 }

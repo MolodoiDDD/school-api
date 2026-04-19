@@ -3,18 +3,22 @@ package com.school.school_api.service;
 import com.school.school_api.dto.LessonCreateDto;
 import com.school.school_api.dto.LessonUpdateDto;
 import com.school.school_api.dto.ScheduleLessonDto;
+import com.school.school_api.dto.TeacherDto;
 import com.school.school_api.entity.Lesson;
-import com.school.school_api.entity.Subject;
+import com.school.school_api.exception.*;
 import com.school.school_api.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class LessonService {
 
     private final LessonRepository repository;
@@ -23,72 +27,103 @@ public class LessonService {
     private final SubjectRepository subjectRepository;
     private final TeacherRepository teacherRepository;
 
-    public LessonService(LessonRepository repository,
-                         RoomRepository roomRepository,
-                         SchoolClassRepository schoolClassRepository,
-                         SubjectRepository subjectRepository,
-                         TeacherRepository teacherRepository) {
-        this.repository = repository;
-        this.roomRepository = roomRepository;
-        this.schoolClassRepository = schoolClassRepository;
-        this.subjectRepository = subjectRepository;
-        this.teacherRepository = teacherRepository;
-    }
-
 
     public List<Lesson> findAll() {
         return repository.findAll();
     }
 
+
+
     public Lesson findById(Long id) {
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Расписание не найдено"));
+        return repository.findById(id)
+                .orElseThrow(() -> new LessonNotFoundException(id));
     }
 
     public Lesson create(LessonCreateDto dto) {
-        Lesson lesson = new Lesson();
+        boolean roomConflict = repository.existsRoomConflict(
+                dto.getRoomId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        boolean teacherConflict = repository.existsTeacherConflict(
+                dto.getTeacherId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        boolean classConflict = repository.existsClassConflict(
+                dto.getClassId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        if (roomConflict || teacherConflict || classConflict) {
+            throw new ConflictException("Урок пересекается с уже существующим");
+        }
 
-        lesson.setSubject(subjectRepository.findById(dto.getSubjectId())
-                .orElseThrow(() -> new RuntimeException("Предмет не найден")));
-
-        lesson.setRoom(roomRepository.findById(dto.getRoomId())
-                .orElseThrow(() -> new RuntimeException("Кабинет не найден")));
-
-        lesson.setSchoolClass(schoolClassRepository.findById(dto.getClassId())
-                .orElseThrow(() -> new RuntimeException("Класс не найден")));
-
-        lesson.setTeacher(teacherRepository.findById(dto.getTeacherId())
-                .orElseThrow(() -> new RuntimeException("Учитель не найден")));
-
-        lesson.setStartTime(dto.getStartTime());
-        lesson.setEndTime(dto.getEndTime());
-
-        lesson.setCreated(LocalDateTime.now());
-        lesson.setModified(LocalDateTime.now());
-        lesson.setDeleted(false);
+        Lesson lesson = Lesson.builder()
+                .subject(subjectRepository.findById(dto.getSubjectId())
+                        .orElseThrow(() -> new SubjectNotFoundException(dto.getSubjectId())))
+                .room(roomRepository.findById(dto.getRoomId())
+                        .orElseThrow(() -> new RoomNotFoundException(dto.getRoomId())))
+                .schoolClass(schoolClassRepository.findById(dto.getClassId())
+                        .orElseThrow(() -> new SchoolClassNotFoundException(dto.getClassId())))
+                .teacher(teacherRepository.findById(dto.getTeacherId())
+                        .orElseThrow(() -> new TeacherNotFoundException(dto.getTeacherId())))
+                .startTime(dto.getStartTime())
+                .endTime(dto.getEndTime())
+                .created(LocalDateTime.now())
+                .modified(LocalDateTime.now())
+                .deleted(false)
+                .dayOfWeek(dto.getDayOfWeek())
+                .build();
 
         return repository.save(lesson);
     }
 
     public Lesson update(Long id, LessonUpdateDto dto) {
+        boolean roomConflict = repository.existsRoomConflict(
+                dto.getRoomId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        boolean teacherConflict = repository.existsTeacherConflict(
+                dto.getTeacherId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        boolean classConflict = repository.existsClassConflict(
+                dto.getClassId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        if (roomConflict || teacherConflict || classConflict) {
+            throw new ConflictException("Урок пересекается с уже существующим");
+        }
+
         Lesson existing = findById(id);
 
         if (dto.getRoomId() != null) {
             existing.setRoom(roomRepository.findById(dto.getRoomId())
-                    .orElseThrow(() -> new RuntimeException("Кабинет не найден")));
+                    .orElseThrow(() -> new RoomNotFoundException(dto.getRoomId())));
         }
 
         if (dto.getClassId() != null) {
             existing.setSchoolClass(schoolClassRepository.findById(dto.getClassId())
-                    .orElseThrow(() -> new RuntimeException("Класс не найден")));
+                    .orElseThrow(() -> new SchoolClassNotFoundException(dto.getClassId())));
         }
 
         if (dto.getSubjectId() != null) {
             existing.setSubject(subjectRepository.findById(dto.getSubjectId())
-                    .orElseThrow(() -> new RuntimeException("Предмет не найден")));
+                    .orElseThrow(() -> new SubjectNotFoundException(dto.getSubjectId())));
         }
         if (dto.getTeacherId() != null) {
             existing.setTeacher(teacherRepository.findById(dto.getTeacherId())
-                    .orElseThrow(() -> new RuntimeException("Учитель не найден")));
+                    .orElseThrow(() -> new TeacherNotFoundException(dto.getTeacherId())));
         }
 
         if (dto.getStartTime() != null) {
@@ -96,6 +131,9 @@ public class LessonService {
         }
         if (dto.getEndTime() != null) {
             existing.setEndTime(dto.getEndTime());
+        }
+        if (dto.getDayOfWeek() != null) {
+            existing.setDayOfWeek(dto.getDayOfWeek());
         }
 
         existing.setModified(LocalDateTime.now());
@@ -112,6 +150,24 @@ public class LessonService {
         return repository.save(lesson);
     }
 
+    private ScheduleLessonDto toDto(Lesson lesson) {
+        TeacherDto teacherDto = new TeacherDto();
+        teacherDto.setId(lesson.getTeacher().getId());
+        teacherDto.setLastName(lesson.getTeacher().getLastName());
+        teacherDto.setFirstName(lesson.getTeacher().getFirstName());
+        teacherDto.setMiddleName(lesson.getTeacher().getMiddleName());
+
+        return new ScheduleLessonDto(
+                lesson.getDayOfWeek(),
+                lesson.getSubject().getSubjectName(),
+                teacherDto.getTeacherFullName(),
+                lesson.getStartTime(),
+                lesson.getEndTime(),
+                lesson.getRoom().getRoomNumber(),
+                lesson.getSchoolClass().getName()
+        );
+    }
+
     public List<ScheduleLessonDto> getSchedule() {
         List<ScheduleLessonDto> schedule = new ArrayList<>();
 
@@ -119,18 +175,7 @@ public class LessonService {
             if (lesson.getDeleted()) {
                 continue;
             }
-            ScheduleLessonDto dto = new ScheduleLessonDto(
-                    lesson.getDayOfWeek(),
-                    lesson.getSubject().getSubjectName(),
-                    lesson.getTeacher().getLastName() + " " +
-                            lesson.getTeacher().getFirstName() + " " +
-                            lesson.getTeacher().getMiddleName(),
-                    lesson.getStartTime(),
-                    lesson.getEndTime(),
-                    lesson.getRoom().getRoomNumber(),
-                    lesson.getSchoolClass().getName()
-            );
-            schedule.add(dto);
+            schedule.add(toDto(lesson));
         }
 
         return schedule;
@@ -154,18 +199,7 @@ public class LessonService {
                 continue;
             }
 
-            ScheduleLessonDto dto = new ScheduleLessonDto(
-                    lesson.getDayOfWeek(),
-                    lesson.getSubject().getSubjectName(),
-                    lesson.getTeacher().getLastName() + " " +
-                            lesson.getTeacher().getFirstName() + " " +
-                            lesson.getTeacher().getMiddleName(),
-                    lesson.getStartTime(),
-                    lesson.getEndTime(),
-                    lesson.getRoom().getRoomNumber(),
-                    lesson.getSchoolClass().getName()
-            );
-            schedule.add(dto);
+            schedule.add(toDto(lesson));
         }
         return schedule;
     }

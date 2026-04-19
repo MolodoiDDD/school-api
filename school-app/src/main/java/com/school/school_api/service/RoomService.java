@@ -2,30 +2,42 @@ package com.school.school_api.service;
 
 import com.school.school_api.dto.RoomCreateDto;
 import com.school.school_api.dto.RoomUpdateDto;
+import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.Room;
+import com.school.school_api.exception.ConflictException;
+import com.school.school_api.exception.RoomNotFoundException;
 import com.school.school_api.repository.RoomRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class RoomService {
 
     private final RoomRepository repository;
 
-    public RoomService(RoomRepository repository) {
-        this.repository = repository;
-    }
-
     public List<Room> findAll() {
         return repository.findAll();
     }
+
+
+
     public Room findById(Long id) {
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Кабинет не найден"));
+        return repository.findById(id)
+                .orElseThrow(() -> new RoomNotFoundException(id));
     }
 
     public Room create(RoomCreateDto dto) {
+        boolean conflict = repository.existsByRoomNumber(dto.getRoomNumber());
+        if (conflict) {
+            throw new ConflictException("Такой кабинет уже существует");
+        }
+
         Room room = new Room();
 
         room.setRoomNumber(dto.getRoomNumber());
@@ -37,6 +49,11 @@ public class RoomService {
     }
 
     public Room update(Long id, RoomUpdateDto dto) {
+        boolean conflict = repository.existsByRoomNumberAndIdNot(dto.getRoomNumber(), id);
+        if (conflict) {
+            throw new ConflictException("Такой кабинет уже существует");
+        }
+
         Room existing = findById(id);
 
         existing.setRoomNumber(dto.getRoomNumber());

@@ -2,27 +2,29 @@ package com.school.school_api.controller;
 
 import com.school.school_api.dto.TeacherCreateDto;
 import com.school.school_api.dto.TeacherUpdateDto;
+import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.Teacher;
 import com.school.school_api.service.TeacherService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/teachers")
+@RequiredArgsConstructor
 public class TeacherController {
 
     private final TeacherService service;
-
-    public TeacherController(TeacherService service) {
-        this.service = service;
-    }
 
     @GetMapping
     public List<Teacher> getAll() {
         return service.findAll();
     }
+
 
     @GetMapping("/{id}")
     public Teacher getById(@PathVariable("id") Long id) {

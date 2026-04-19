@@ -1,5 +1,7 @@
 package com.school.school_api.dto;
 
+import com.school.school_api.entity.Lesson;
+import com.school.school_api.entity.Teacher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,4 +20,6 @@ public class ScheduleLessonDto {
     private LocalTime endTime;
     private Integer roomNumber;
     private String schoolClass;
+
+
 }
