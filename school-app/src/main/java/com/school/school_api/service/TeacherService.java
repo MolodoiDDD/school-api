@@ -4,6 +4,7 @@ import com.school.school_api.dto.TeacherCreateDto;
 import com.school.school_api.dto.TeacherUpdateDto;
 import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.Teacher;
+import com.school.school_api.exception.ConflictException;
 import com.school.school_api.exception.TeacherNotFoundException;
 import com.school.school_api.repository.TeacherRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,16 @@ public class TeacherService {
     }
 
     public Teacher create(TeacherCreateDto dto) {
+        boolean conflict = repository.existsByLastNameAndFirstNameAndMiddleName(
+                dto.getLastName(),
+                dto.getFirstName(),
+                dto.getMiddleName()
+        );
+
+        if (conflict) {
+            throw new ConflictException("Такой учитель уже существует");
+        }
+
         Teacher teacher = new Teacher();
 
         teacher.setFirstName(dto.getFirstName());
@@ -46,6 +57,16 @@ public class TeacherService {
     }
 
     public Teacher update(Long id, TeacherUpdateDto dto) {
+        boolean conflict = repository.existsByLastNameAndFirstNameAndMiddleNameAndIdNot(
+                dto.getLastName(),
+                dto.getFirstName(),
+                dto.getMiddleName(),
+                id
+        );
+        if (conflict) {
+            throw new ConflictException("Такой учитель уже существует");
+        }
+
         Teacher existing = findById(id);
 
         if (dto.getFirstName() != null) {

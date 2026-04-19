@@ -4,6 +4,7 @@ import com.school.school_api.dto.SchoolClassCreateDto;
 import com.school.school_api.dto.SchoolClassUpdateDto;
 import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.SchoolClass;
+import com.school.school_api.exception.ConflictException;
 import com.school.school_api.exception.SchoolClassNotFoundException;
 import com.school.school_api.repository.SchoolClassRepository;
 import jakarta.validation.Valid;
@@ -33,6 +34,10 @@ public class SchoolClassService {
     }
 
     public SchoolClass create(SchoolClassCreateDto dto) {
+        boolean conflict = repository.existsByName(dto.getName());
+        if (conflict) {
+            throw new ConflictException("Такой класс уже существует");
+        }
         SchoolClass schoolClass = new SchoolClass();
 
         schoolClass.setName(dto.getName());
@@ -44,6 +49,11 @@ public class SchoolClassService {
     }
 
     public SchoolClass update(Long id, SchoolClassUpdateDto dto) {
+        boolean conflict = repository.existsByNameAndIdNot(dto.getName(), id);
+        if (conflict) {
+            throw new ConflictException("Такой класс уже существует");
+        }
+
         SchoolClass schoolClass = findById(id);
 
 

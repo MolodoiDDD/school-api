@@ -40,6 +40,28 @@ public class LessonService {
     }
 
     public Lesson create(LessonCreateDto dto) {
+        boolean roomConflict = repository.existsRoomConflict(
+                dto.getRoomId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        boolean teacherConflict = repository.existsTeacherConflict(
+                dto.getTeacherId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        boolean classConflict = repository.existsClassConflict(
+                dto.getClassId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        if (roomConflict || teacherConflict || classConflict) {
+            throw new ConflictException("Урок пересекается с уже существующим");
+        }
+
         Lesson lesson = Lesson.builder()
                 .subject(subjectRepository.findById(dto.getSubjectId())
                         .orElseThrow(() -> new SubjectNotFoundException(dto.getSubjectId())))
@@ -54,12 +76,35 @@ public class LessonService {
                 .created(LocalDateTime.now())
                 .modified(LocalDateTime.now())
                 .deleted(false)
+                .dayOfWeek(dto.getDayOfWeek())
                 .build();
 
         return repository.save(lesson);
     }
 
     public Lesson update(Long id, LessonUpdateDto dto) {
+        boolean roomConflict = repository.existsRoomConflict(
+                dto.getRoomId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        boolean teacherConflict = repository.existsTeacherConflict(
+                dto.getTeacherId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        boolean classConflict = repository.existsClassConflict(
+                dto.getClassId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime()
+        );
+        if (roomConflict || teacherConflict || classConflict) {
+            throw new ConflictException("Урок пересекается с уже существующим");
+        }
+
         Lesson existing = findById(id);
 
         if (dto.getRoomId() != null) {
@@ -86,6 +131,9 @@ public class LessonService {
         }
         if (dto.getEndTime() != null) {
             existing.setEndTime(dto.getEndTime());
+        }
+        if (dto.getDayOfWeek() != null) {
+            existing.setDayOfWeek(dto.getDayOfWeek());
         }
 
         existing.setModified(LocalDateTime.now());

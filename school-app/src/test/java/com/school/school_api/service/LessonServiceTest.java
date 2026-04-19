@@ -194,7 +194,7 @@ public class LessonServiceTest {
         Lesson result = service.delete(1L);
 
         assertTrue(result.getDeleted());
-        
+
         verify(repository).save(lesson);
     }
 

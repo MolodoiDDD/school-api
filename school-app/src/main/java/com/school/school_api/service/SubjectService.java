@@ -4,6 +4,7 @@ import com.school.school_api.dto.SubjectCreateDto;
 import com.school.school_api.dto.SubjectUpdateDto;
 import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.Subject;
+import com.school.school_api.exception.ConflictException;
 import com.school.school_api.exception.SubjectNotFoundException;
 import com.school.school_api.repository.SubjectRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,11 @@ public class SubjectService {
     }
 
     public Subject create(SubjectCreateDto dto) {
+        boolean conflict = repository.existsBySubjectName(dto.getSubjectName());
+        if (conflict) {
+            throw new ConflictException("Такой предмет уже существует");
+        }
+
         Subject subject = new Subject();
 
         subject.setSubjectName(dto.getSubjectName());
@@ -44,6 +50,10 @@ public class SubjectService {
     }
 
     public Subject update(Long id, SubjectUpdateDto dto) {
+        boolean conflict = repository.existsBySubjectNameAndIdNot(dto.getSubjectName(), id);
+        if (conflict) {
+            throw new ConflictException("Такой предмет уже существует");
+        }
         Subject existing = findById(id);
 
         existing.setSubjectName(dto.getSubjectName());

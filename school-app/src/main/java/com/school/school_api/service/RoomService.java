@@ -4,6 +4,7 @@ import com.school.school_api.dto.RoomCreateDto;
 import com.school.school_api.dto.RoomUpdateDto;
 import com.school.school_api.entity.Lesson;
 import com.school.school_api.entity.Room;
+import com.school.school_api.exception.ConflictException;
 import com.school.school_api.exception.RoomNotFoundException;
 import com.school.school_api.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,11 @@ public class RoomService {
     }
 
     public Room create(RoomCreateDto dto) {
+        boolean conflict = repository.existsByRoomNumber(dto.getRoomNumber());
+        if (conflict) {
+            throw new ConflictException("Такой кабинет уже существует");
+        }
+
         Room room = new Room();
 
         room.setRoomNumber(dto.getRoomNumber());
@@ -43,6 +49,11 @@ public class RoomService {
     }
 
     public Room update(Long id, RoomUpdateDto dto) {
+        boolean conflict = repository.existsByRoomNumberAndIdNot(dto.getRoomNumber(), id);
+        if (conflict) {
+            throw new ConflictException("Такой кабинет уже существует");
+        }
+
         Room existing = findById(id);
 
         existing.setRoomNumber(dto.getRoomNumber());
